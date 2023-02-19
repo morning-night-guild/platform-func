@@ -1,4 +1,8 @@
-import { DOMParser, Element, NodeType } from "https://deno.land/x/deno_dom/deno-dom-wasm.ts";
+import {
+  DOMParser,
+  Element,
+  NodeType,
+} from "https://deno.land/x/deno_dom/deno-dom-wasm.ts";
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 
 type OGP = {
@@ -8,9 +12,9 @@ type OGP = {
 };
 
 export type Env = {
-  API_KEY: string;
+  APPAPI_API_KEY: string;
+  APPAPI_URL: string;
   SLACK_VERIFICATION_TOKEN: string;
-  CORE_SERVICE_URL: string;
 };
 
 export type SlackEventType = "url_verification" | "event_callback";
@@ -49,8 +53,8 @@ export const extractFirstUrlFromUrlsConcatByPipe = (url: string) => {
 };
 
 const env: Env = {
-  API_KEY: Deno.env.get("CORE_API_KEY") ?? "",
-  CORE_SERVICE_URL: Deno.env.get("CORE_SERVICE_URL") ?? "",
+  APPAPI_API_KEY: Deno.env.get("APPAPI_API_KEY") ?? "",
+  APPAPI_URL: Deno.env.get("APPAPI_URL") ?? "",
   SLACK_VERIFICATION_TOKEN: Deno.env.get("SLACK_VERIFICATION_TOKEN") ?? "",
 };
 
@@ -124,8 +128,8 @@ serve(async (request: { json: () => any }) => {
   }
 
   if (event.type === "event_callback") {
-    const url = env.CORE_SERVICE_URL + "/article.v1.ArticleService/Share";
-    callback(event, url, env.API_KEY);
+    const url = env.APPAPI_URL + "/article.v1.ArticleService/Share";
+    callback(event, url, env.APPAPI_API_KEY);
   }
 
   return new Response(
