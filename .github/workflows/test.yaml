@@ -3,8 +3,8 @@ run-name: ${{ github.ref_name }} by @${{ github.actor }} ${{ github.workflow }}
 on:
   pull_request:
     paths:
-      - .github/workflows/supabase.test.yaml
-      - supabase/functions/**/*.ts
+      - .github/workflows/test.yaml
+      - functions/**/*.ts
 jobs:
   test:
     runs-on: ubuntu-22.04
