@@ -12,9 +12,9 @@ type OGP = {
 };
 
 export type Env = {
-  APPAPI_API_KEY: string;
-  APPAPI_URL: string;
+  API_KEY: string;
   SLACK_VERIFICATION_TOKEN: string;
+  APP_API_URL: string;
 };
 
 export type SlackEventType = "url_verification" | "event_callback";
@@ -53,8 +53,8 @@ export const extractFirstUrlFromUrlsConcatByPipe = (url: string) => {
 };
 
 const env: Env = {
-  APPAPI_API_KEY: Deno.env.get("APPAPI_API_KEY") ?? "",
-  APPAPI_URL: Deno.env.get("APPAPI_URL") ?? "",
+  API_KEY: Deno.env.get("APP_API_KEY") ?? "",
+  APP_API_URL: Deno.env.get("APP_API_URL") ?? "",
   SLACK_VERIFICATION_TOKEN: Deno.env.get("SLACK_VERIFICATION_TOKEN") ?? "",
 };
 
@@ -90,7 +90,7 @@ export const callback = async (
       }),
       method: "POST",
       headers: {
-        "X-API-KEY": key,
+        "Api-Key": key,
         "Content-Type": "application/json",
       },
     };
@@ -128,8 +128,8 @@ serve(async (request: { json: () => any }) => {
   }
 
   if (event.type === "event_callback") {
-    const url = env.APPAPI_URL + "/article.v1.ArticleService/Share";
-    callback(event, url, env.APPAPI_API_KEY);
+    const url = env.APP_API_URL + "/api/v1/articles";
+    callback(event, url, env.API_KEY);
   }
 
   return new Response(
