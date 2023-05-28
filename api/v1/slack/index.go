@@ -2,6 +2,7 @@ package api
 
 import (
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/morning-night-guild/platform-func/pkg/appapi"
@@ -55,14 +56,18 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	url, err := slack.ExtractURLFromEvent(ctx, event.InnerEvent)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		log.Printf("failed to extract url from event: %s", err.Error())
+
+		_, _ = w.Write([]byte("ok"))
 
 		return
 	}
 
 	art, err := ogp.Create(ctx, url)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		log.Printf("failed to create ogp: %s", err.Error())
+
+		_, _ = w.Write([]byte("ok"))
 
 		return
 	}
@@ -74,7 +79,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		Url:         art.URL,
 	})
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		log.Printf("failed to call app api: %s", err.Error())
+
+		_, _ = w.Write([]byte("ok"))
 
 		return
 	}
@@ -82,7 +89,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		w.WriteHeader(http.StatusBadRequest)
+		log.Printf("failed to call app api: %s", res.Status)
+
+		_, _ = w.Write([]byte("ok"))
 
 		return
 	}

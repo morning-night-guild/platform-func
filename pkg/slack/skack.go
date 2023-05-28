@@ -85,6 +85,14 @@ func ExtractURLFromEvent(
 	// link_shareのイベントは発火しなかったため一旦断念
 	// @see https://api.slack.com/events/message
 	case *slackevents.MessageEvent:
+		log.Printf("message event %+v", ev)
+
+		if ev.SubType == "message_changed" {
+			log.Printf("message subtype is message_changed")
+
+			return "", fmt.Errorf("message subtype is message_changed")
+		}
+
 		if len(ev.Text) == 0 {
 			log.Println("message is empty")
 

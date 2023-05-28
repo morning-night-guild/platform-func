@@ -40,7 +40,7 @@ func V1InternalArticleShare(
 
 	bodyReader = bytes.NewReader(buf)
 
-	url := fmt.Sprintf("%s/v1/internal/articles", endpoint)
+	url := fmt.Sprintf("%s/api/v1/internal/articles", endpoint)
 
 	req, err := http.NewRequest(http.MethodPost, url, bodyReader)
 	if err != nil {
