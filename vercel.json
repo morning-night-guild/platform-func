@@ -1,0 +1,11 @@
+{
+  "build": {
+    "env": {
+      "GO_BUILD_FLAGS": "-ldflags '-s -w' -mod=mod"
+    }
+  },
+  "routes": [
+    { "src": "/api/v1/health", "dest": "/api/v1/article" },
+    { "src": "/api/v1/article", "dest": "/api/v1/health" }
+  ]
+}
