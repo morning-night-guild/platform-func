@@ -1,13 +1,15 @@
-# supabase
-
-## format
+# platform-func
 
 ```shell
-deno fmt
-```
-
-## task runner
-
-```shell
-deno task <target>
+├── api # function
+│   └── v1
+│       ├── health
+│       └── slack
+├── pkg # internal
+│   ├── appapi
+│   ├── config
+│   ├── ogp
+│   └── slack
+├── vendor
+└── vercel.json
 ```
