@@ -56,9 +56,9 @@ test: ## Run unit test. If you want to invalidate the cache, please specify an a
 
 define _test
 if [ -z "$1" ]; then \
-	go test ./... ; \
+	go test ./pkg/... ; \
 else \
-	go test ./... -count=1 ; \
+	go test ./pkg/... -count=1 ; \
 fi
 endef
 
