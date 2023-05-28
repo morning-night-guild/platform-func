@@ -81,3 +81,7 @@ ymlint: ## Lint yaml file.
 .PHONY: ymlfmt
 ymlfmt: ## Format yaml file.
 	@yamlfmt
+
+.PHONY: deploy
+deploy: ## Deploy to Vercel.
+	@vercel --prod --token ${VERCEL_TOKEN}
