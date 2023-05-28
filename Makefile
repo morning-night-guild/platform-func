@@ -1,5 +1,5 @@
 include .env
-include .sercet.env
+include .secret.env
 export
 
 .PHONY: help

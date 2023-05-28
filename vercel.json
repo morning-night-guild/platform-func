@@ -5,7 +5,7 @@
     }
   },
   "routes": [
-    { "src": "/api/v1/health", "dest": "/api/v1/article" },
-    { "src": "/api/v1/article", "dest": "/api/v1/health" }
+    { "src": "/api/v1/health", "dest": "/api/v1/health" },
+    { "src": "/api/v1/slack", "dest": "/api/v1/slack" }
   ]
 }
