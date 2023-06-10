@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
@@ -103,6 +104,8 @@ func ExtractURLFromEvent(
 
 		u := r.FindString(ev.Text)
 
+		u = ExtractFirstURLFromUrlsConcatByPipe(u)
+
 		if _, err := url.Parse(u); err != nil {
 			return "", fmt.Errorf("failed parse url: %w", err)
 		}
@@ -114,4 +117,14 @@ func ExtractURLFromEvent(
 
 		return "", fmt.Errorf("undefined event")
 	}
+}
+
+func ExtractFirstURLFromUrlsConcatByPipe(
+	urls string,
+) string {
+	if !strings.Contains(urls, "|") {
+		return urls
+	}
+
+	return strings.Split(urls, "|")[0]
 }
