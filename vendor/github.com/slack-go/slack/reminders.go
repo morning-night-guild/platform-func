@@ -5,6 +5,11 @@ import (
 	"net/url"
 )
 
+// Reminder represents a reminder returned by Slack's legacy reminders API.
+// These APIs have limited functionality following the introduction of Later;
+// they do not provide access to all items in a user's Later view.
+//
+// See https://docs.slack.dev/changelog/2023-07-its-later-already-for-stars-and-reminders/
 type Reminder struct {
 	ID         string `json:"id"`
 	Creator    string `json:"creator"`
@@ -41,23 +46,20 @@ func (api *Client) doReminders(ctx context.Context, path string, values url.Valu
 
 	// create an array of pointers to reminders
 	var reminders = make([]*Reminder, 0, len(response.Reminders))
-	for _, reminder := range response.Reminders {
-		reminders = append(reminders, reminder)
-	}
-
+	reminders = append(reminders, response.Reminders...)
 	return reminders, response.Err()
 }
 
 // ListReminders lists all the reminders created by or for the authenticated user
-//
-// See https://api.slack.com/methods/reminders.list
+// For more details, see ListRemindersContext documentation.
 func (api *Client) ListReminders() ([]*Reminder, error) {
 	return api.ListRemindersContext(context.Background())
 }
 
-// ListRemindersContext lists all the reminders created by or for the authenticated user with a custom context
+// ListRemindersContext lists all the reminders created by or for the authenticated user with a custom context.
+// Slack's legacy reminder APIs have limited functionality; this is not a Later API.
 //
-// For more details, see ListReminders documentation.
+// Slack API docs: https://docs.slack.dev/reference/methods/reminders.list
 func (api *Client) ListRemindersContext(ctx context.Context) ([]*Reminder, error) {
 	values := url.Values{
 		"token": {api.token},
@@ -66,17 +68,16 @@ func (api *Client) ListRemindersContext(ctx context.Context) ([]*Reminder, error
 }
 
 // AddChannelReminder adds a reminder for a channel.
-//
-// See https://api.slack.com/methods/reminders.add (NOTE: the ability to set
-// reminders on a channel is currently undocumented but has been tested to
-// work)
+// For more details, see AddChannelReminderContext documentation.
 func (api *Client) AddChannelReminder(channelID, text, time string) (*Reminder, error) {
 	return api.AddChannelReminderContext(context.Background(), channelID, text, time)
 }
 
 // AddChannelReminderContext adds a reminder for a channel with a custom context
+// The channel parameter is undocumented, and Slack's legacy reminder APIs have
+// limited functionality. See [Reminder] for details before relying on this method.
 //
-// For more details, see AddChannelReminder documentation.
+// Slack API docs: https://docs.slack.dev/reference/methods/reminders.add
 func (api *Client) AddChannelReminderContext(ctx context.Context, channelID, text, time string) (*Reminder, error) {
 	values := url.Values{
 		"token":   {api.token},
@@ -88,17 +89,16 @@ func (api *Client) AddChannelReminderContext(ctx context.Context, channelID, tex
 }
 
 // AddUserReminder adds a reminder for a user.
-//
-// See https://api.slack.com/methods/reminders.add (NOTE: the ability to set
-// reminders on a channel is currently undocumented but has been tested to
-// work)
+// For more details, see AddUserReminderContext documentation.
 func (api *Client) AddUserReminder(userID, text, time string) (*Reminder, error) {
 	return api.AddUserReminderContext(context.Background(), userID, text, time)
 }
 
 // AddUserReminderContext adds a reminder for a user with a custom context
+// Slack's legacy reminder APIs have limited functionality, including restrictions
+// on setting reminders for other users. See Slack's current token requirements.
 //
-// For more details, see AddUserReminder documentation.
+// Slack API docs: https://docs.slack.dev/reference/methods/reminders.add
 func (api *Client) AddUserReminderContext(ctx context.Context, userID, text, time string) (*Reminder, error) {
 	values := url.Values{
 		"token": {api.token},
@@ -110,15 +110,15 @@ func (api *Client) AddUserReminderContext(ctx context.Context, userID, text, tim
 }
 
 // DeleteReminder deletes an existing reminder.
-//
-// See https://api.slack.com/methods/reminders.delete
+// For more details, see DeleteReminderContext documentation.
 func (api *Client) DeleteReminder(id string) error {
 	return api.DeleteReminderContext(context.Background(), id)
 }
 
 // DeleteReminderContext deletes an existing reminder with a custom context
+// Slack's legacy reminder APIs have limited functionality; this is not a Later API.
 //
-// For more details, see DeleteReminder documentation.
+// Slack API docs: https://docs.slack.dev/reference/methods/reminders.delete
 func (api *Client) DeleteReminderContext(ctx context.Context, id string) error {
 	values := url.Values{
 		"token":    {api.token},

@@ -2,6 +2,7 @@ package slack
 
 import (
 	"context"
+	"net/http"
 	"net/url"
 	"sync"
 	"time"
@@ -25,6 +26,9 @@ const (
 // StartRTM calls the "rtm.start" endpoint and returns the provided URL and the full Info block.
 //
 // To have a fully managed Websocket connection, use `NewRTM`, and call `ManageConnection()` on it.
+//
+// Deprecated: Use [ConnectRTM] instead.
+// For more details, see: https://api.slack.com/changelog/2021-10-rtm-start-to-stop
 func (api *Client) StartRTM() (info *Info, websocketURL string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), websocketDefaultTimeout)
 	defer cancel()
@@ -35,6 +39,9 @@ func (api *Client) StartRTM() (info *Info, websocketURL string, err error) {
 // StartRTMContext calls the "rtm.start" endpoint and returns the provided URL and the full Info block with a custom context.
 //
 // To have a fully managed Websocket connection, use `NewRTM`, and call `ManageConnection()` on it.
+//
+// Deprecated: Use [ConnectRTMContext] instead.
+// For more details, see: https://api.slack.com/changelog/2021-10-rtm-start-to-stop
 func (api *Client) StartRTMContext(ctx context.Context) (info *Info, websocketURL string, err error) {
 	response := &infoResponseFull{}
 	err = api.postMethod(ctx, "rtm.start", url.Values{"token": {api.token}}, response)
@@ -88,6 +95,27 @@ func RTMOptionUseStart(b bool) RTMOption {
 func RTMOptionDialer(d *websocket.Dialer) RTMOption {
 	return func(rtm *RTM) {
 		rtm.dialer = d
+	}
+}
+
+// RTMOptionDialHeaders sets HTTP headers for the initial WebSocket handshake and
+// every reconnect. Headers are copied when the option is applied and before each
+// dial. The default Origin is used unless a non-empty Origin header is supplied.
+func RTMOptionDialHeaders(headers http.Header) RTMOption {
+	return func(rtm *RTM) {
+		rtm.dialHeaders = headers.Clone()
+	}
+}
+
+// RTMOptionReadLimit sets the maximum incoming WebSocket message size in bytes.
+// The default is unlimited; a non-positive limit also disables the limit.
+// The limit applies to each message, including all fragments, on every connection.
+// Exceeding it closes the connection and triggers the normal reconnect handling.
+// With compression enabled through a custom dialer, the limit counts compressed
+// bytes and does not bound the size after decompression.
+func RTMOptionReadLimit(limit int64) RTMOption {
+	return func(rtm *RTM) {
+		rtm.readLimit = limit
 	}
 }
 
