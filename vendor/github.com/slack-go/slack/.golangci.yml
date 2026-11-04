@@ -1,14 +1,67 @@
+version: "2"
 run:
   timeout: 6m
   issues-exit-code: 1
 linters:
-  disable-all: true
+  default: none
+  enable:
+    - asasalint
+    - bidichk
+    - canonicalheader
+    - durationcheck
+    - errcheck
+    - errorlint
+    - gocheckcompilerdirectives
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - makezero
+    - misspell
+    - modernize
+    - nilnesserr
+    - predeclared
+    - testifylint
+    - thelper
+    - unconvert
+    - unused
+  settings:
+    modernize:
+      # omitempty on nested struct fields has no effect, but switching to
+      # omitzero would change JSON output for a public API. Keep the tags as-is.
+      disable:
+        - omitzero
+  exclusions:
+    generated: lax
+    rules:
+      # Apply errcheck to production code; legacy fixtures omit error checks.
+      - path: _test\.go$
+        linters:
+          - errcheck
+      # Test fixtures contain placeholder credentials and local HTTP handlers.
+      - path: _test\.go$
+        linters:
+          - gosec
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - ^examples/
+formatters:
   enable:
     - goimports
-    - govet
-    - interfacer
-    - misspell
-    - structcheck
-    - unconvert
-issues:
-  new: true
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/slack-go/slack
+  exclusions:
+    generated: lax
+    warn-unused: true
+    paths:
+      - third_party$
+      - builtin$
+      - ^examples/

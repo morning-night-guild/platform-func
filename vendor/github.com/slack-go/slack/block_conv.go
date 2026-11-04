@@ -2,7 +2,6 @@ package slack
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 )
 
@@ -10,15 +9,9 @@ type sumtype struct {
 	TypeVal string `json:"type"`
 }
 
-// MarshalJSON implements the Marshaller interface for Blocks so that any JSON
-// marshalling is delegated and proper type determination can be made before marshal
+// MarshalJSON encodes the underlying block slice.
 func (b Blocks) MarshalJSON() ([]byte, error) {
-	bytes, err := json.Marshal(b.BlockSet)
-	if err != nil {
-		return nil, err
-	}
-
-	return bytes, nil
+	return json.Marshal(b.BlockSet)
 }
 
 // UnmarshalJSON implements the Unmarshaller interface for Blocks, so that any JSON
@@ -54,6 +47,8 @@ func (b *Blocks) UnmarshalJSON(data []byte) error {
 			block = &ActionBlock{}
 		case "context":
 			block = &ContextBlock{}
+		case "context_actions":
+			block = &ContextActionsBlock{}
 		case "divider":
 			block = &DividerBlock{}
 		case "file":
@@ -64,12 +59,47 @@ func (b *Blocks) UnmarshalJSON(data []byte) error {
 			block = &ImageBlock{}
 		case "input":
 			block = &InputBlock{}
+		case "markdown":
+			block = &MarkdownBlock{}
 		case "rich_text":
+			block = &RichTextBlock{}
+		case "rich_text_input":
 			block = &RichTextBlock{}
 		case "section":
 			block = &SectionBlock{}
+		case "call":
+			block = &CallBlock{}
+		case "video":
+			block = &VideoBlock{}
+		case "table":
+			block = &TableBlock{}
+		case "data_table":
+			block = &DataTableBlock{}
+		case "data_visualization":
+			block = &DataVisualizationBlock{}
+		case "task_card":
+			block = &TaskCardBlock{}
+		case "alert":
+			block = &AlertBlock{}
+		case "auth_provider":
+			block = &AuthProviderBlock{}
+		case "plan":
+			block = &PlanBlock{}
+		case "card":
+			block = &CardBlock{}
+		case "carousel":
+			block = &CarouselBlock{}
+		case "container":
+			block = &ContainerBlock{}
+		case "layout":
+			block = &LayoutBlock{}
 		default:
-			block = &UnknownBlock{}
+			b := &UnknownBlock{raw: r}
+			if err = json.Unmarshal(r, b); err != nil {
+				return err
+			}
+			blocks.BlockSet = append(blocks.BlockSet, b)
+			continue
 		}
 
 		err = json.Unmarshal(r, block)
@@ -99,9 +129,14 @@ func (b *InputBlock) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	// Preserve compatibility with partial blocks and null input.
+	if len(a.Element) == 0 {
+		return nil
+	}
+
 	s := sumtype{}
 	if err := json.Unmarshal(a.Element, &s); err != nil {
-		return nil
+		return err
 	}
 
 	var e BlockElement
@@ -114,6 +149,8 @@ func (b *InputBlock) UnmarshalJSON(data []byte) error {
 		e = &DateTimePickerBlockElement{}
 	case "plain_text_input":
 		e = &PlainTextInputBlockElement{}
+	case "rich_text_input":
+		e = &RichTextInputBlockElement{}
 	case "email_text_input":
 		e = &EmailTextInputBlockElement{}
 	case "url_text_input":
@@ -130,8 +167,16 @@ func (b *InputBlock) UnmarshalJSON(data []byte) error {
 		e = &RadioButtonsBlockElement{}
 	case "number_input":
 		e = &NumberInputBlockElement{}
+	case "file_input":
+		e = &FileInputBlockElement{}
+	case "feedback_buttons":
+		e = &FeedbackButtonsBlockElement{}
+	case "icon_button":
+		e = &IconButtonBlockElement{}
+	case "workflow_button":
+		e = &WorkflowButtonBlockElement{}
 	default:
-		return errors.New("unsupported block element type")
+		return fmt.Errorf("unsupported block element type %v", s.TypeVal)
 	}
 
 	if err := json.Unmarshal(a.Element, e); err != nil {
@@ -142,15 +187,9 @@ func (b *InputBlock) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON implements the Marshaller interface for BlockElements so that any JSON
-// marshalling is delegated and proper type determination can be made before marshal
+// MarshalJSON encodes the underlying block element slice.
 func (b *BlockElements) MarshalJSON() ([]byte, error) {
-	bytes, err := json.Marshal(b.ElementSet)
-	if err != nil {
-		return nil, err
-	}
-
-	return bytes, nil
+	return json.Marshal(b.ElementSet)
 }
 
 // UnmarshalJSON implements the Unmarshaller interface for BlockElements, so that any JSON
@@ -196,6 +235,8 @@ func (b *BlockElements) UnmarshalJSON(data []byte) error {
 			blockElement = &DateTimePickerBlockElement{}
 		case "plain_text_input":
 			blockElement = &PlainTextInputBlockElement{}
+		case "rich_text_input":
+			blockElement = &RichTextInputBlockElement{}
 		case "email_text_input":
 			blockElement = &EmailTextInputBlockElement{}
 		case "url_text_input":
@@ -206,8 +247,18 @@ func (b *BlockElements) UnmarshalJSON(data []byte) error {
 			blockElement = &RadioButtonsBlockElement{}
 		case "static_select", "external_select", "users_select", "conversations_select", "channels_select":
 			blockElement = &SelectBlockElement{}
+		case "multi_static_select", "multi_external_select", "multi_users_select", "multi_conversations_select", "multi_channels_select":
+			blockElement = &MultiSelectBlockElement{}
 		case "number_input":
 			blockElement = &NumberInputBlockElement{}
+		case "file_input":
+			blockElement = &FileInputBlockElement{}
+		case "feedback_buttons":
+			blockElement = &FeedbackButtonsBlockElement{}
+		case "icon_button":
+			blockElement = &IconButtonBlockElement{}
+		case "workflow_button":
+			blockElement = &WorkflowButtonBlockElement{}
 		default:
 			return fmt.Errorf("unsupported block element type %v", blockElementType)
 		}
@@ -224,15 +275,9 @@ func (b *BlockElements) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON implements the Marshaller interface for Accessory so that any JSON
-// marshalling is delegated and proper type determination can be made before marshal
+// MarshalJSON encodes the selected accessory element.
 func (a *Accessory) MarshalJSON() ([]byte, error) {
-	bytes, err := json.Marshal(toBlockElement(a))
-	if err != nil {
-		return nil, err
-	}
-
-	return bytes, nil
+	return json.Marshal(toBlockElement(a))
 }
 
 // UnmarshalJSON implements the Unmarshaller interface for Accessory, so that any JSON
@@ -298,6 +343,12 @@ func (a *Accessory) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		a.PlainTextInputElement = element.(*PlainTextInputBlockElement)
+	case "rich_text_input":
+		element, err := unmarshalBlockElement(r, &RichTextInputBlockElement{})
+		if err != nil {
+			return err
+		}
+		a.RichTextInputElement = element.(*RichTextInputBlockElement)
 	case "radio_buttons":
 		element, err := unmarshalBlockElement(r, &RadioButtonsBlockElement{})
 		if err != nil {
@@ -322,6 +373,12 @@ func (a *Accessory) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		a.CheckboxGroupsBlockElement = element.(*CheckboxGroupsBlockElement)
+	case "workflow_button":
+		element, err := unmarshalBlockElement(r, &WorkflowButtonBlockElement{})
+		if err != nil {
+			return err
+		}
+		a.WorkflowButtonElement = element.(*WorkflowButtonBlockElement)
 	default:
 		element, err := unmarshalBlockElement(r, &UnknownBlockElement{})
 		if err != nil {
@@ -372,19 +429,19 @@ func toBlockElement(element *Accessory) BlockElement {
 	if element.MultiSelectElement != nil {
 		return element.MultiSelectElement
 	}
+	if element.RichTextInputElement != nil {
+		return element.RichTextInputElement
+	}
+	if element.WorkflowButtonElement != nil {
+		return element.WorkflowButtonElement
+	}
 
 	return nil
 }
 
-// MarshalJSON implements the Marshaller interface for ContextElements so that any JSON
-// marshalling is delegated and proper type determination can be made before marshal
+// MarshalJSON encodes the underlying context element slice.
 func (e *ContextElements) MarshalJSON() ([]byte, error) {
-	bytes, err := json.Marshal(e.Elements)
-	if err != nil {
-		return nil, err
-	}
-
-	return bytes, nil
+	return json.Marshal(e.Elements)
 }
 
 // UnmarshalJSON implements the Unmarshaller interface for ContextElements, so that any JSON
@@ -429,7 +486,7 @@ func (e *ContextElements) UnmarshalJSON(data []byte) error {
 
 			e.Elements = append(e.Elements, elem.(*ImageBlockElement))
 		default:
-			return errors.New("unsupported context element type")
+			return fmt.Errorf("unsupported context element type %v", contextElementType)
 		}
 	}
 
